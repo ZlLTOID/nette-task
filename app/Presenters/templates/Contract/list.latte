@@ -1,0 +1,25 @@
+{block content}
+    <h1>Contracts</h1>
+
+    {foreach $contracts as $contract}
+        <div class="post">
+            <h2><a href="{link Contract:detail $contract->id}">{$contract->name}</a></h2>
+            <div>{$contract->priceCZK} Kč</div>
+            <div>{$eurPrices[$contract->id]} €</div>
+            <div>{$usdPrices[$contract->id]} $</div>
+            <br>
+            <div>{$contract->solvers}</div>
+        </div>
+        <br>
+        {var $markedForInvoicing = 'Ne'}
+        {if $contract->forInvoicing}
+            {var $markedForInvoicing = 'Ano'}
+        {/if}
+        <div>Označeno pro fakturaci: {$markedForInvoicing}</div>
+        <br>
+        <a n:href="markForInvoice! $contract->id">Označit pro fakturaci</a>
+        <hr>
+    {/foreach}
+    <br>
+    {control invoiceForm}
+{/block}
