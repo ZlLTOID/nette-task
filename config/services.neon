@@ -8,3 +8,4 @@ search:
 			- *Facade
 			- *Repository
 			- *Provider
+			- *Handler

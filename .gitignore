@@ -1,4 +1,4 @@
 config/local.neon
 /vendor
 /log
-/.docker
+/.docker/data

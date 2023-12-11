@@ -7,41 +7,29 @@ namespace App\Presenters;
 use App\Factory\InvoiceFormFactory;
 use App\Repository\ContractRepository;
 use App\Repository\InvoiceRepository;
-use App\Service\ExchangeRatesProvider;
+use App\Service\InvoiceFormHandler;
 use Nette\Application\UI\Form;
 use Nette\Application\UI\Presenter;
-use stdClass;
 
 final class ContractPresenter extends Presenter
 {
     private ContractRepository $contractRepository;
     private InvoiceRepository $invoiceRepository;
-    private ExchangeRatesProvider $exchangeRatesProvider;
     private InvoiceFormFactory $invoiceFormFactory;
+    private InvoiceFormHandler $invoiceFormHandler;
 
     public function __construct(
         ContractRepository    $contractRepository,
         InvoiceRepository $invoiceRepository,
-        ExchangeRatesProvider $exchangeRatesProvider,
         InvoiceFormFactory $invoiceFormFactory,
+        InvoiceFormHandler $invoiceFormHandler,
     )
     {
         $this->contractRepository = $contractRepository;
         $this->invoiceRepository = $invoiceRepository;
-        $this->exchangeRatesProvider = $exchangeRatesProvider;
-        parent::__construct();
         $this->invoiceFormFactory = $invoiceFormFactory;
-    }
-
-    private function getForeignPrice(
-        float $czkPrice,
-        float $foreignRate
-    ): float
-    {
-        return round(
-            $czkPrice / $foreignRate,
-            2
-        );
+        $this->invoiceFormHandler = $invoiceFormHandler;
+        parent::__construct();
     }
 
     protected function createComponentInvoiceForm(): Form
@@ -51,7 +39,7 @@ final class ContractPresenter extends Presenter
         $contracts = $this->contractRepository->findAllForList();
         foreach ($contracts as  $key => $contract) {
             if ($contract->forInvoicing) {
-                $form->addHidden('Zakazka_' . $key+1, $contract->id);
+                $form->addHidden('Contract_' . $key+1, $contract->id);
             }
         }
 
@@ -60,13 +48,13 @@ final class ContractPresenter extends Presenter
         return $form;
     }
 
-    public function formSucceeded(stdClass $data): void
+    public function formSucceeded(Form $form): void
     {
-        dump($data);
-        die();
-        $invoice = $this->invoiceRepository->createNewInvoice($data);
+        $invoiceModel = $this->invoiceFormHandler->handle($form);
 
-        $this->flashMessage('Faktura byla vytvořena');
+        // Tady bych ideálně vystřelil event, ale nenašel jsem jak to udělat be použití knihovny třetí strany
+        $invoice = $this->invoiceRepository->createNewInvoice($invoiceModel);
+
         $this->redirect('Invoice:detail', [$invoice->id]);
     }
 
@@ -83,18 +71,6 @@ final class ContractPresenter extends Presenter
     {
         $contracts = $this->contractRepository->findAllForList();
 
-        $eurRate = $this->exchangeRatesProvider->getEURRate();
-        $usdRate = $this->exchangeRatesProvider->getUSDRate();
-
-        $eurPrices = [];
-        $usdPrices = [];
-        foreach ($contracts as $contract) {
-            $eurPrices[$contract->id] = $this->getForeignPrice($contract->priceCZK, $eurRate);
-            $usdPrices[$contract->id] = $this->getForeignPrice($contract->priceCZK, $usdRate);
-        }
-
-        $this->template->eurPrices = $eurPrices;
-        $this->template->usdPrices = $usdPrices;
         $this->template->contracts = $contracts;
     }
 
@@ -102,14 +78,6 @@ final class ContractPresenter extends Presenter
     {
         $contract = $this->contractRepository->findOneById($contractId);
 
-        $eurRate = $this->exchangeRatesProvider->getEURRate();
-        $usdRate = $this->exchangeRatesProvider->getUSDRate();
-
-        $eurPrice = $this->getForeignPrice($contract->priceCZK, $eurRate);
-        $usdPrice = $this->getForeignPrice($contract->priceCZK, $usdRate);
-
-        $this->template->eurPrice = $eurPrice;
-        $this->template->usdPrice = $usdPrice;
         $this->template->contract = $contract;
     }
 }

@@ -13,7 +13,8 @@ services:
       - nette-blog
     ports:
       - "3306:3306"
-
+    security_opt:
+      - seccomp:unconfined
   php:
     platform: linux/x86_64
     build: ./.docker/php

@@ -1,12 +1,16 @@
 {block content}
-    <h1>Contracts</h1>
+    <h1>Zakázky</h1>
 
     {foreach $contracts as $contract}
         <div class="post">
             <h2><a href="{link Contract:detail $contract->id}">{$contract->name}</a></h2>
             <div>{$contract->priceCZK} Kč</div>
-            <div>{$eurPrices[$contract->id]} €</div>
-            <div>{$usdPrices[$contract->id]} $</div>
+            {if $contract->priceEUR}
+                <div>{$contract->priceEUR} €</div>
+            {/if}
+            {if $contract->priceUSD}
+            <div>{$contract->priceUSD} $</div>
+            {/if}
             <br>
             <div>{$contract->solvers}</div>
         </div>

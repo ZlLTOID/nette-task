@@ -2,9 +2,22 @@
 
 <p><a n:href="Contract:list">← back to contracts list</a></p>
 
+<h1>Faktura č. {$invoice['invoice']->id}</h1>
 
-<div>{$invoice->firstName}</div>
-<div>{$invoice->lastName}</div>
+<div>Jméno: {$invoice['invoice']->firstName}</div>
+<div>Příjmení: {$invoice['invoice']->lastName}</div>
+
+<h2>Položky faktury</h2>
+
+{foreach $invoice['contracts'] as $contract}
+    <div><a href="{link Contract:detail $contract->id}">{$contract->name}</a></div>
+
+    <div>{$contract->priceCZK} Kč</div>
+    <div>{$contract->priceEUR} €</div>
+    <div>{$contract->priceUSD} $</div>
+    <hr>
+
+{/foreach}
 
 </block>
 

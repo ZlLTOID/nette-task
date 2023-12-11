@@ -14,6 +14,7 @@ final class InvoicePresenter extends Presenter
     public function __construct(InvoiceRepository $invoiceRepository)
     {
         $this->invoiceRepository = $invoiceRepository;
+        parent::__construct();
     }
 
     public function renderDetail(int $invoiceId): void
